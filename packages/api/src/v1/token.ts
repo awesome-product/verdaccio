@@ -7,7 +7,7 @@ import { Response, Router } from 'express';
 
 import { Config, RemoteUser, Token } from '@verdaccio/types';
 import { IAuth } from '@verdaccio/auth';
-import { IStorageHandler } from '@verdaccio/store';
+import { Storage } from '@verdaccio/store';
 import { $RequestExtend, $NextFunctionVer } from '../../types/custom';
 
 export type NormalizeToken = Token & {
@@ -22,12 +22,7 @@ function normalizeToken(token: Token): NormalizeToken {
 }
 
 // https://github.com/npm/npm-profile/blob/latest/lib/index.js
-export default function (
-  route: Router,
-  auth: IAuth,
-  storage: IStorageHandler,
-  config: Config
-): void {
+export default function (route: Router, auth: IAuth, storage: Storage, config: Config): void {
   route.get(
     '/-/npm/v1/tokens',
     async function (req: $RequestExtend, res: Response, next: $NextFunctionVer) {
@@ -46,7 +41,7 @@ export default function (
               next: '', // TODO: pagination?
             },
           });
-        } catch (error) {
+        } catch (error: any) {
           logger.error({ error: error.msg }, 'token list has failed: @{error}');
           return next(ErrorCode.getCode(HTTP_STATUS.INTERNAL_ERROR, error.message));
         }
@@ -116,7 +111,7 @@ export default function (
               created: saveToken.created,
             })
           );
-        } catch (error) {
+        } catch (error: any) {
           logger.error({ error: error.msg }, 'token creation has failed: @{error}');
           return next(ErrorCode.getCode(HTTP_STATUS.INTERNAL_ERROR, error.message));
         }
@@ -138,7 +133,7 @@ export default function (
           await storage.deleteToken(name, tokenKey);
           logger.info({ tokenKey, name }, 'token id @{tokenKey} was revoked for user @{name}');
           return next({});
-        } catch (error) {
+        } catch (error: any) {
           logger.error({ error: error.msg }, 'token creation has failed: @{error}');
           return next(ErrorCode.getCode(HTTP_STATUS.INTERNAL_ERROR, error.message));
         }

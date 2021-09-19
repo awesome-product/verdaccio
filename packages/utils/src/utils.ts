@@ -20,13 +20,20 @@ import {
  * From normalize-package-data/lib/fixer.js
  * @param {*} name  the package name
  * @return {Boolean} whether is valid or not
+ * @deprecated
  */
 export function validateName(name: string): boolean {
   if (_.isString(name) === false) {
     return false;
   }
+  let normalizedName: string = name.toLowerCase();
 
-  const normalizedName: string = name.toLowerCase();
+  const isScoped: boolean = name.startsWith('@') && name.includes('/');
+  const scopedName = name.split('/', 2)[1];
+
+  if (isScoped && !_.isUndefined(scopedName)) {
+    normalizedName = scopedName.toLowerCase();
+  }
 
   /**
    * Some context about the first regex
@@ -49,6 +56,7 @@ export function validateName(name: string): boolean {
 /**
  * Validate a package.
  * @return {Boolean} whether the package is valid or not
+ * @deprecated
  */
 export function validatePackage(name: string): boolean {
   const nameList = name.split('/', 2);
@@ -64,6 +72,7 @@ export function validatePackage(name: string): boolean {
  * Check whether an element is an Object
  * @param {*} obj the element
  * @return {Boolean}
+ * @deprecated
  */
 export function isObject(obj: any): boolean {
   return _.isObject(obj) && _.isNull(obj) === false && _.isArray(obj) === false;
@@ -75,6 +84,7 @@ export function isObject(obj: any): boolean {
  * @param {*} object
  * @param {*} name
  * @return {Object} the object with additional properties as dist-tags ad versions
+ * @deprecated
  */
 export function validateMetadata(object: Package, name: string): Package {
   assert(isObject(object), 'not a json object');
@@ -112,7 +122,7 @@ export function getVersion(pkg: Package, version: any): Version | void {
         return pkg.versions[versionItem];
       }
     }
-  } catch (err) {
+  } catch (err: any) {
     return undefined;
   }
 }
@@ -251,10 +261,6 @@ export function pad(str, max): string {
  */
 export function mask(str: string, charNum = 3): string {
   return `${str.substr(0, charNum)}...${str.substr(-charNum)}`;
-}
-
-export function encodeScopedUri(packageName): string {
-  return packageName.replace(/\//g, '%2f');
 }
 
 export function hasDiffOneKey(versions): boolean {

@@ -20,9 +20,8 @@ export class PromiseAssert extends Promise<any> implements IRequestPromise {
       this,
       this.then(function (body) {
         try {
-          console.log('-->', expected, selfData?.response?.statusCode);
           assert.equal(selfData.response.statusCode, expected);
-        } catch (err) {
+        } catch (err: any) {
           debug('error status %o', err);
           selfData.error.message = err.message;
           throw selfData.error;
@@ -46,7 +45,7 @@ export class PromiseAssert extends Promise<any> implements IRequestPromise {
             assert.equal(body.ok, expected);
           }
           assert.equal(body.error, null);
-        } catch (err) {
+        } catch (err: any) {
           debug('body_ok error %o', err.message);
           selfData.error.message = err.message;
           throw selfData.error;
@@ -70,7 +69,7 @@ export class PromiseAssert extends Promise<any> implements IRequestPromise {
             assert.equal(body.error, expected);
           }
           assert.equal(body.ok, null);
-        } catch (err) {
+        } catch (err: any) {
           selfData.error.message = err.message;
           throw selfData.error;
         }

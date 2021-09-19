@@ -1,13 +1,13 @@
 ---
 id: plugin-generator
-title: 'Plugin Generator'
+title: "Plugin Generator"
 ---
 
-## Installing the Yeoman Generator
+## Installing the Yeoman Generator {#installing-the-yeoman-generator}
 
 Verdaccio is a pluggable application, with the objective to help developers to generate new plugins, we have a custom generator based in **[Yeoman](https://yeoman.io/)** for generate all sort of plugins.
 
-To install the generator, as first step you must install the _yeoman_ command `yo`.
+To install the generator, as first step you must install the *yeoman* command `yo`.
 
 ```bash
 npm install -g yo
@@ -19,11 +19,9 @@ then, install the custom generator running the following in your terminal.
 npm i -g generator-verdaccio-plugin
 ```
 
-## Using the generator
+## Using the generator {#using-the-generator}
 
-Use `yeoman` is quite straighforward, you can read more infomation about it [here](https://yeoman.io/learning/index.html).
-
-<div id="codefund">''</div>
+Use `yeoman` is quite straighforward, you can read more information about it [here](https://yeoman.io/learning/index.html).
 
 After a success install, run `yo verdaccio-plugin` in your terminal and follow the steps.
 
@@ -46,7 +44,7 @@ Setting the project root at: /Users/user/verdaccio_yo_generator
 ? What is the name of your plugin? (customname)
 ```
 
-### Best practices
+### Best practices {#best-practices}
 
 - We recommend using **Typescript** for developing new plugins, we provide an extense support of Types which help you along the development.
 
@@ -64,14 +62,14 @@ Setting the project root at: /Users/user/verdaccio_yo_generator
 ```
 
 - Don't hesitate to include meaningful keywords, as `verdaccio`, `plugin` or your plugin type. Good keywords will help us to find you and future improvement in our collect information about all plugins.
-
 ```
 ? Key your keywords (comma to split) verdaccio,plugin,storage,minio,verdaccio-plugin
 ```
 
 - Keep your generator **updated**, don't miss any bug-fixes and performance improvements.
 
-### Contributing
+
+### Contributing {#contributing}
 
 Help us to improve the generator, you can contribute in the following repository.
 

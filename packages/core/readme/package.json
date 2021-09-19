@@ -40,12 +40,12 @@
     "build"
   ],
   "dependencies": {
-    "dompurify": "2.0.8",
-    "jsdom": "15.2.1",
-    "marked": "1.1.1"
+    "dompurify": "2.3.1",
+    "jsdom": "17.0.0",
+    "marked": "3.0.2"
   },
   "devDependencies": {
-    "@verdaccio/types": "workspace:11.0.0-6-next.4"
+    "@verdaccio/types": "workspace:11.0.0-6-next.8"
   },
   "scripts": {
     "clean": "rimraf ./build",

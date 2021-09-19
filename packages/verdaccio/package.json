@@ -1,6 +1,6 @@
 {
   "name": "verdaccio",
-  "version": "6.0.0-6-next.11",
+  "version": "6.0.0-6-next.23",
   "description": "A lightweight private npm proxy registry",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -18,7 +18,8 @@
   "scripts": {
     "clean": "rimraf ./build",
     "lint": "eslint . --ext .js,.ts",
-    "test": "cross-env NODE_ENV=test jest --config ./test/jest.config.functional.js --testPathPattern ./test/functional/index* --passWithNoTests",
+    "test": "cross-env NODE_ENV=test jest --config ./test/jest.config.functional.js --testPathPattern ./test/functional/index* --passWithNoTests --detectOpenHandles",
+    "test:debug": "cross-env NODE_ENV=test node --inspect-brk ../../node_modules/jest/bin/jest.js --config ./test/jest.config.functional.js --testPathPattern ./test/functional/index* --passWithNoTests",
     "type-check": "tsc --noEmit -p tsconfig.build.json",
     "build:types": "tsc --emitDeclarationOnly -p tsconfig.build.json",
     "build:js": "babel src/ --out-dir build/ --copy-files --extensions \".ts,.tsx\" --source-maps",
@@ -36,21 +37,22 @@
   },
   "homepage": "https://verdaccio.org",
   "dependencies": {
-    "@verdaccio/cli": "workspace:6.0.0-6-next.10",
-    "@verdaccio/hooks": "workspace:6.0.0-6-next.4",
+    "@verdaccio/cli": "workspace:6.0.0-6-next.21",
+    "@verdaccio/hooks": "workspace:6.0.0-6-next.6",
     "@verdaccio/logger": "workspace:6.0.0-6-next.4",
-    "@verdaccio/mock": "workspace:6.0.0-6-next.4",
-    "@verdaccio/node-api": "workspace:6.0.0-6-next.10",
-    "@verdaccio/ui-theme": "workspace:6.0.0-alpha.5",
-    "@verdaccio/utils": "workspace:6.0.0-alpha.3",
-    "verdaccio-audit": "11.0.0-alpha.4",
-    "verdaccio-htpasswd": "11.0.0-alpha.6"
+    "@verdaccio/mock": "workspace:6.0.0-6-next.9",
+    "@verdaccio/node-api": "workspace:6.0.0-6-next.20",
+    "@verdaccio/ui-theme": "workspace:6.0.0-6-next.10",
+    "@verdaccio/utils": "workspace:6.0.0-6-next.6",
+    "verdaccio-audit": "11.0.0-6-next.6",
+    "verdaccio-htpasswd": "11.0.0-6-next.8"
   },
   "devDependencies": {
-    "@verdaccio/auth": "workspace:6.0.0-6-next.6",
-    "@verdaccio/commons-api": "workspace:11.0.0-alpha.3",
-    "@verdaccio/config": "workspace:6.0.0-6-next.4",
-    "@verdaccio/store": "workspace:6.0.0-6-next.6"
+    "@verdaccio/auth": "workspace:6.0.0-6-next.11",
+    "@verdaccio/commons-api": "workspace:11.0.0-6-next.4",
+    "@verdaccio/config": "workspace:6.0.0-6-next.8",
+    "@verdaccio/store": "workspace:6.0.0-6-next.12",
+    "fastify": "3.20.2"
   },
   "keywords": [
     "private",

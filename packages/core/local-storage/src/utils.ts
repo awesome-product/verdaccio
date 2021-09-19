@@ -68,7 +68,7 @@ export async function findPackages(
           }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       reject(error);
     }
 
@@ -84,4 +84,3 @@ export function _dbGenPath(
     path.resolve(path.dirname(config.config_path || ''), config.storage as string, dbName)
   );
 }
-/* eslint-enable no-async-promise-executor */

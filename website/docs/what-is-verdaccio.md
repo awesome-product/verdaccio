@@ -1,59 +1,63 @@
 ---
 id: what-is-verdaccio
-title: 'What is Verdaccio?'
+title: "What is Verdaccio?"
 ---
 
 Verdaccio is a **lightweight private npm proxy registry** built in **Node.js**
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/hDIFKzmoCaA" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-<div id="codefund">''</div>
+[![logo](https://cdn.verdaccio.dev/website/watch-us.png)](https://www.youtube.com/channel/UC5i20v6o7lSjXzAHOvatt0w)
 
-## What's a registry
+<iframe width="560" height="315" src="https://www.youtube.com/embed/hDIFKzmoCaA?enablejsapi=1" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-- A repository for packages that implements the **CommonJS Compliant Package Registry specification** for reading package info
-- Provide an API compatible with npm clients **(yarn/npm/pnpm)**
-- Follow the semantic Versioning compatible **(semver)**
+## What's a registry? {#whats-a-registry}
+
+* A registry is a repository for packages, that implements the **CommonJS Compliant Package Registry specification** for reading package's information.
+* Provide a compatible API with npm clients **(yarn/npm/pnpm)**.
+* Semantic Versioning compatible **(semver)**.
 
 ```bash
-$ verdaccio
+$> verdaccio
 ```
 
-![registry](/assets/verdaccio_server.gif)
+![registry](/img/verdaccio_server.gif)
 
-## Using Verdaccio
+## Using Verdaccio {#using-verdaccio}
 
-Using verdaccio with any node package manager client is quite straightforward.
+Using Verdaccio with any Node.js package manager client is quite straightforward.
 
-![registry](assets/npm_install.gif)
+![registry](/img/npm_install.gif)
 
-You can use a custom registry either setting globally for all your projects
+You can use a custom registry either by setting it globally for all your projects
 
 ```bash
 npm set registry http://localhost:4873
 ```
 
-or by command line as argument `--registry` in npm (slightly different in yarn)
+or by using it in command line as an argument `--registry` in npm (slightly different in yarn)
 
 ```bash
 npm install lodash --registry http://localhost:4873
 ```
 
-## Private
+```bash
+yarn config set registry http://localhost:4873
+```
+
+## Private {#private}
 
 All packages that you publish are private and only accessible based in your configuration.
 
-## Proxy
+## Proxy {#proxy}
 
-Verdaccio cache all dependencies by demand and speed up installations in local or private networks.
+Verdaccio cache all dependencies on demand and speed up installations in local or private networks.
 
-## Verdaccio in a nutshell
+## In a Nutshell {#in-a-nutshell}
 
-- It's a web app based on Node.js
-- It's a private npm registry
-- It's a local network proxy
-- It's a Pluggable application
-- It's a fairly easy install and use
-- We offer Docker and Kubernetes support
-- It is 100% compatible with yarn, npm and pnpm
-- It was **forked** based on `sinopia@1.4.0` and 100% **backward compatible**.
-- Verdaccio means **A green color popular in late medieval Italy for fresco painting**.
+* It's a web app based on Node.js
+* It's a private npm registry
+* It's a local network proxy
+* It's a Pluggable application
+* It's fairly easy to install and to use
+* We offer Docker and Kubernetes support
+* It is 100% compatible with yarn, npm and pnpm
+* Verdaccio means **A green color popular in late medieval Italy for fresco painting**.

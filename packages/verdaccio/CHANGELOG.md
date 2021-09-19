@@ -1,5 +1,178 @@
 # verdaccio
 
+## 6.0.0-6-next.23
+
+### Major Changes
+
+- 459b6fa7: refactor: search v1 endpoint and local-database
+
+  - refactor search `api v1` endpoint, improve performance
+  - remove usage of `async` dependency https://github.com/verdaccio/verdaccio/issues/1225
+  - refactor method storage class
+  - create new module `core` to reduce the ammount of modules with utilities
+  - use `undici` instead `node-fetch`
+  - use `fastify` instead `express` for functional test
+
+  ### Breaking changes
+
+  - plugin storage API changes
+  - remove old search endpoint (return 404)
+  - filter local private packages at plugin level
+
+  The storage api changes for methods `get`, `add`, `remove` as promise base. The `search` methods also changes and recieves a `query` object that contains all query params from the client.
+
+  ```ts
+  export interface IPluginStorage<T> extends IPlugin {
+    add(name: string): Promise<void>;
+    remove(name: string): Promise<void>;
+    get(): Promise<any>;
+    init(): Promise<void>;
+    getSecret(): Promise<string>;
+    setSecret(secret: string): Promise<any>;
+    getPackageStorage(packageInfo: string): IPackageStorage;
+    search(query: searchUtils.SearchQuery): Promise<searchUtils.SearchItem[]>;
+    saveToken(token: Token): Promise<any>;
+    deleteToken(user: string, tokenKey: string): Promise<any>;
+    readTokens(filter: TokenFilter): Promise<Token[]>;
+  }
+  ```
+
+### Patch Changes
+
+- Updated dependencies [459b6fa7]
+  - @verdaccio/cli@6.0.0-6-next.21
+  - @verdaccio/hooks@6.0.0-6-next.6
+  - verdaccio-audit@11.0.0-6-next.6
+  - @verdaccio/ui-theme@6.0.0-6-next.10
+  - @verdaccio/utils@6.0.0-6-next.6
+  - @verdaccio/mock@6.0.0-6-next.9
+  - @verdaccio/node-api@6.0.0-6-next.20
+  - verdaccio-htpasswd@11.0.0-6-next.8
+  - @verdaccio/logger@6.0.0-6-next.4
+
+## 6.0.0-6-next.22
+
+### Patch Changes
+
+- Updated dependencies [df0da3d6]
+  - verdaccio-htpasswd@11.0.0-6-next.7
+  - @verdaccio/hooks@6.0.0-6-next.5
+  - @verdaccio/mock@6.0.0-6-next.8
+  - @verdaccio/node-api@6.0.0-6-next.19
+  - @verdaccio/cli@6.0.0-6-next.20
+  - @verdaccio/ui-theme@6.0.0-6-next.9
+
+## 6.0.0-6-next.21
+
+### Patch Changes
+
+- Updated dependencies [2e3b9552]
+  - @verdaccio/cli@6.0.0-6-next.19
+
+## 6.0.0-6-next.20
+
+### Patch Changes
+
+- Updated dependencies [f96b147e]
+  - verdaccio-audit@11.0.0-6-next.5
+  - @verdaccio/node-api@6.0.0-6-next.18
+  - @verdaccio/cli@6.0.0-6-next.18
+  - @verdaccio/ui-theme@6.0.0-6-next.9
+
+## 6.0.0-6-next.19
+
+### Patch Changes
+
+- Updated dependencies [67406082]
+  - @verdaccio/ui-theme@6.0.0-6-next.9
+
+## 6.0.0-6-next.18
+
+### Patch Changes
+
+- Updated dependencies [d2c65da9]
+- Updated dependencies [55ee3fdd]
+  - @verdaccio/utils@6.0.0-6-next.5
+  - @verdaccio/cli@6.0.0-6-next.17
+  - @verdaccio/mock@6.0.0-6-next.7
+  - @verdaccio/hooks@6.0.0-6-next.4
+  - @verdaccio/node-api@6.0.0-6-next.17
+  - @verdaccio/ui-theme@6.0.0-6-next.8
+
+## 6.0.0-6-next.17
+
+### Patch Changes
+
+- @verdaccio/node-api@6.0.0-6-next.16
+- @verdaccio/cli@6.0.0-6-next.16
+- @verdaccio/ui-theme@6.0.0-6-next.8
+
+## 6.0.0-6-next.16
+
+### Patch Changes
+
+- Updated dependencies [0da7031e]
+  - @verdaccio/ui-theme@6.0.0-6-next.8
+  - @verdaccio/hooks@6.0.0-6-next.4
+  - @verdaccio/logger@6.0.0-6-next.4
+  - @verdaccio/mock@6.0.0-6-next.6
+  - @verdaccio/node-api@6.0.0-6-next.15
+  - @verdaccio/cli@6.0.0-6-next.15
+
+## 6.0.0-6-next.15
+
+### Patch Changes
+
+- Updated dependencies [aecbd226]
+  - @verdaccio/ui-theme@6.0.0-6-next.7
+  - @verdaccio/hooks@6.0.0-6-next.4
+  - @verdaccio/logger@6.0.0-6-next.4
+  - @verdaccio/mock@6.0.0-6-next.6
+  - @verdaccio/node-api@6.0.0-6-next.14
+  - @verdaccio/cli@6.0.0-6-next.14
+
+## 6.0.0-6-next.14
+
+### Patch Changes
+
+- @verdaccio/cli@6.0.0-6-next.13
+- @verdaccio/hooks@6.0.0-6-next.4
+- @verdaccio/mock@6.0.0-6-next.6
+- @verdaccio/node-api@6.0.0-6-next.13
+- @verdaccio/ui-theme@6.0.0-6-next.6
+
+## 6.0.0-6-next.13
+
+### Patch Changes
+
+- Updated dependencies [19d272d1]
+  - @verdaccio/cli@6.0.0-6-next.12
+  - @verdaccio/node-api@6.0.0-6-next.12
+  - @verdaccio/hooks@6.0.0-6-next.4
+  - @verdaccio/logger@6.0.0-6-next.4
+  - @verdaccio/mock@6.0.0-6-next.5
+  - @verdaccio/ui-theme@6.0.0-6-next.6
+
+## 6.0.0-6-next.12
+
+### Patch Changes
+
+- 648575aa: Bug Fixes
+
+  - fix escaped slash in namespaced packages
+
+  #### Related tickets
+
+  https://github.com/verdaccio/verdaccio/pull/2193
+
+- Updated dependencies [648575aa]
+  - @verdaccio/mock@6.0.0-6-next.5
+  - @verdaccio/ui-theme@6.0.0-6-next.6
+  - @verdaccio/utils@6.0.0-6-next.4
+  - @verdaccio/cli@6.0.0-6-next.11
+  - @verdaccio/hooks@6.0.0-6-next.4
+  - @verdaccio/node-api@6.0.0-6-next.11
+
 ## 6.0.0-6-next.11
 
 ### Major Changes

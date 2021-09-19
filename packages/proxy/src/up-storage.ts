@@ -1,32 +1,29 @@
-import zlib from 'zlib';
-import Stream from 'stream';
-import URL, { UrlWithStringQuery } from 'url';
-import JSONStream from 'JSONStream';
+/* global AbortController */
+
+import Stream, { PassThrough, Readable } from 'stream';
+import { URL } from 'url';
+import buildDebug from 'debug';
 import _ from 'lodash';
+import { Request, Headers } from 'undici-fetch';
+import JSONStream from 'JSONStream';
 import request from 'request';
-import { isObject, ErrorCode, buildToken } from '@verdaccio/utils';
+import { buildToken } from '@verdaccio/utils';
 import { ReadTarball } from '@verdaccio/streams';
 import {
-  ERROR_CODE,
   TOKEN_BASIC,
   TOKEN_BEARER,
   HEADERS,
   HTTP_STATUS,
-  API_ERROR,
   HEADER_TYPE,
   CHARACTER_ENCODING,
 } from '@verdaccio/commons-api';
-import {
-  Config,
-  Callback,
-  Headers,
-  Logger,
-  UpLinkConf,
-  Package,
-  IReadTarball,
-} from '@verdaccio/types';
+import { Config, Callback, Logger, UpLinkConf, IReadTarball } from '@verdaccio/types';
+import { errorUtils, validatioUtils, searchUtils } from '@verdaccio/core';
 import { parseInterval } from './proxy-utils';
 const LoggerApi = require('@verdaccio/logger');
+
+const fetch = require('undici-fetch');
+const debug = buildDebug('verdaccio:proxy');
 
 const encode = function (thing): string {
   return encodeURIComponent(thing).replace(/^%40/, '@');
@@ -50,6 +47,12 @@ export interface ProxyList {
   [key: string]: IProxy;
 }
 
+export type ProxySearchParams = {
+  headers?: Headers;
+  url: string;
+  query?: searchUtils.SearchQuery;
+  abort?: AbortController;
+};
 export interface IProxy {
   config: UpLinkConfLocal;
   failed_requests: number;
@@ -57,15 +60,14 @@ export interface IProxy {
   ca?: string | void;
   logger: Logger;
   server_id: string;
-  url: any;
+  url: URL;
   maxage: number;
   timeout: number;
   max_fails: number;
   fail_timeout: number;
   upname: string;
   fetchTarball(url: string): IReadTarball;
-  isUplinkValid(url: string): boolean;
-  search(options: any);
+  search(options: ProxySearchParams): Promise<Stream.Readable>;
   getRemoteMetadata(name: string, options: any, callback: Callback): void;
 }
 
@@ -80,7 +82,7 @@ class ProxyStorage implements IProxy {
   public ca: string | void;
   public logger: Logger;
   public server_id: string;
-  public url: any;
+  public url: URL;
   public maxage: number;
   public timeout: number;
   public max_fails: number;
@@ -109,8 +111,7 @@ class ProxyStorage implements IProxy {
     this.logger = LoggerApi.logger.child({ sub: 'out' });
     this.server_id = mainConfig.server_id;
 
-    this.url = URL.parse(this.config.url);
-    // $FlowFixMe
+    this.url = new URL(this.config.url);
     this._setupProxy(this.url.hostname, config, mainConfig, this.url.protocol === 'https:');
 
     this.config.url = this.config.url.replace(/\/$/, '');
@@ -153,11 +154,10 @@ class ProxyStorage implements IProxy {
 
       process.nextTick(function (): void {
         if (cb) {
-          cb(ErrorCode.getInternalError(API_ERROR.UPLINK_OFFLINE));
+          cb(errorUtils.getInternalError(errorUtils.API_ERROR.UPLINK_OFFLINE));
         }
-        streamRead.emit('error', ErrorCode.getInternalError(API_ERROR.UPLINK_OFFLINE));
+        streamRead.emit('error', errorUtils.getInternalError(errorUtils.API_ERROR.UPLINK_OFFLINE));
       });
-      // $FlowFixMe
       streamRead._read = function (): void {};
       // preventing 'Uncaught, unspecified "error" event'
       streamRead.on('error', function (): void {});
@@ -182,7 +182,7 @@ class ProxyStorage implements IProxy {
       "making request: '@{method} @{uri}'"
     );
 
-    if (isObject(options.json)) {
+    if (validatioUtils.isObject(options.json)) {
       json = JSON.stringify(options.json);
       headers['Content-Type'] = headers['Content-Type'] || HEADERS.JSON;
     }
@@ -210,14 +210,14 @@ class ProxyStorage implements IProxy {
               try {
                 // $FlowFixMe
                 body = JSON.parse(body.toString(CHARACTER_ENCODING.UTF8));
-              } catch (_err) {
+              } catch (_err: any) {
                 body = {};
                 err = _err;
                 error = err.message;
               }
             }
 
-            if (!err && isObject(body)) {
+            if (!err && validatioUtils.isObject(body)) {
               if (_.isString(body.error)) {
                 error = body.error;
               }
@@ -340,7 +340,6 @@ class ProxyStorage implements IProxy {
       return headers;
     }
 
-    // $FlowFixMe
     if (_.isObject(auth) === false && _.isObject(auth.token) === false) {
       this._throwErrorAuth('Auth invalid');
     }
@@ -359,15 +358,15 @@ class ProxyStorage implements IProxy {
       } else if (_.isBoolean(tokenConf.token_env) && tokenConf.token_env) {
         token = process.env.NPM_TOKEN;
       } else {
-        this.logger.error(ERROR_CODE.token_required);
-        this._throwErrorAuth(ERROR_CODE.token_required);
+        this.logger.error(errorUtils.ERROR_CODE.token_required);
+        this._throwErrorAuth(errorUtils.ERROR_CODE.token_required);
       }
     } else {
       token = process.env.NPM_TOKEN;
     }
 
     if (_.isNil(token)) {
-      this._throwErrorAuth(ERROR_CODE.token_required);
+      this._throwErrorAuth(errorUtils.ERROR_CODE.token_required);
     }
 
     // define type Auth allow basic and bearer
@@ -437,27 +436,6 @@ class ProxyStorage implements IProxy {
   }
 
   /**
-   * Determine whether can fetch from the provided URL
-   * @param {*} url
-   * @return {Boolean}
-   */
-  public isUplinkValid(url: string): boolean {
-    // $FlowFixMe
-    const urlParsed: UrlWithStringQuery = URL.parse(url);
-    const isHTTPS = (urlDomainParsed: URL): boolean =>
-      urlDomainParsed.protocol === 'https:' &&
-      (urlParsed.port === null || urlParsed.port === '443');
-    const getHost = (urlDomainParsed): boolean =>
-      isHTTPS(urlDomainParsed) ? urlDomainParsed.hostname : urlDomainParsed.host;
-    const isMatchProtocol: boolean = urlParsed.protocol === this.url.protocol;
-    const isMatchHost: boolean = getHost(urlParsed) === getHost(this.url);
-    // @ts-ignore
-    const isMatchPath: boolean = urlParsed.path.indexOf(this.url.path) === 0;
-
-    return isMatchProtocol && isMatchHost && isMatchPath;
-  }
-
-  /**
    * Get a remote package metadata
    * @param {*} name package name
    * @param {*} options request options, eg: eTag.
@@ -482,13 +460,13 @@ class ProxyStorage implements IProxy {
           return callback(err);
         }
         if (res.statusCode === HTTP_STATUS.NOT_FOUND) {
-          return callback(ErrorCode.getNotFound(API_ERROR.NOT_PACKAGE_UPLINK));
+          return callback(errorUtils.getNotFound(errorUtils.API_ERROR.NOT_PACKAGE_UPLINK));
         }
         if (!(res.statusCode >= HTTP_STATUS.OK && res.statusCode < HTTP_STATUS.MULTIPLE_CHOICES)) {
-          const error = ErrorCode.getInternalError(
-            `${API_ERROR.BAD_STATUS_CODE}: ${res.statusCode}`
+          const error = errorUtils.getInternalError(
+            `${errorUtils.API_ERROR.BAD_STATUS_CODE}: ${res.statusCode}`
           );
-          // $FlowFixMe
+
           error.remoteStatus = res.statusCode;
           return callback(error);
         }
@@ -502,7 +480,7 @@ class ProxyStorage implements IProxy {
    * @param {String} url
    * @return {Stream}
    */
-  fetchTarball(url: string) {
+  public fetchTarball(url: string) {
     const stream = new ReadTarball({});
     let current_length = 0;
     let expected_length;
@@ -518,12 +496,12 @@ class ProxyStorage implements IProxy {
 
     readStream.on('response', function (res: any) {
       if (res.statusCode === HTTP_STATUS.NOT_FOUND) {
-        return stream.emit('error', ErrorCode.getNotFound(API_ERROR.NOT_FILE_UPLINK));
+        return stream.emit('error', errorUtils.getNotFound(errorUtils.API_ERROR.NOT_FILE_UPLINK));
       }
       if (!(res.statusCode >= HTTP_STATUS.OK && res.statusCode < HTTP_STATUS.MULTIPLE_CHOICES)) {
         return stream.emit(
           'error',
-          ErrorCode.getInternalError(`bad uplink status code: ${res.statusCode}`)
+          errorUtils.getInternalError(`bad uplink status code: ${res.statusCode}`)
         );
       }
       if (res.headers[HEADER_TYPE.CONTENT_LENGTH]) {
@@ -545,7 +523,7 @@ class ProxyStorage implements IProxy {
         current_length += data.length;
       }
       if (expected_length && current_length != expected_length) {
-        stream.emit('error', ErrorCode.getInternalError(API_ERROR.CONTENT_MISMATCH));
+        stream.emit('error', errorUtils.getInternalError(errorUtils.API_ERROR.CONTENT_MISMATCH));
       }
     });
     return stream;
@@ -556,57 +534,41 @@ class ProxyStorage implements IProxy {
    * @param {*} options request options
    * @return {Stream}
    */
-  public search(options: any): Stream.Readable {
-    const transformStream: any = new Stream.PassThrough({ objectMode: true });
-    const requestStream: Stream.Readable = this.request({
-      uri: options.req.url,
-      req: options.req,
-      headers: {
-        referer: options.req.headers.referer,
-      },
-    });
+  public async search({ url, abort }: ProxySearchParams): Promise<Stream.Readable> {
+    debug('search url %o', url);
 
-    const parsePackage = (pkg: Package): void => {
-      if (isObject(pkg)) {
-        transformStream.emit('data', pkg);
-      }
-    };
-
-    requestStream.on('response', (res): void => {
-      if (!String(res.statusCode).match(/^2\d\d$/)) {
-        return transformStream.emit(
-          'error',
-          ErrorCode.getInternalError(`bad status code ${res.statusCode} from uplink`)
-        );
-      }
-
-      // See https://github.com/request/request#requestoptions-callback
-      // Request library will not decode gzip stream.
-      let jsonStream;
-      if (res.headers[HEADER_TYPE.CONTENT_ENCODING] === HEADERS.GZIP) {
-        jsonStream = res.pipe(zlib.createUnzip());
-      } else {
-        jsonStream = res;
-      }
-      jsonStream.pipe(JSONStream.parse('*')).on('data', parsePackage);
-      jsonStream.on('end', (): void => {
-        transformStream.emit('end');
+    let response;
+    try {
+      const fullURL = new URL(`${this.url}${url}`);
+      // FIXME: a better way to remove duplicate slashes?
+      const uri = fullURL.href.replace(/([^:]\/)\/+/g, '$1');
+      this.logger.http({ uri, uplink: this.upname }, 'search request to uplink @{uplink} - @{uri}');
+      const request = new Request(uri, {
+        method: 'GET',
+        // FUTURE: whitelist domains what we are sending not need it headers, security check
+        // headers: new Headers({
+        //   ...headers,
+        //   connection: 'keep-alive',
+        // }),
+        signal: abort?.signal,
       });
-    });
+      response = await fetch(request);
+      debug('response.status  %o', response.status);
 
-    requestStream.on('error', (err: Error): void => {
-      transformStream.emit('error', err);
-    });
+      if (response.status >= HTTP_STATUS.BAD_REQUEST) {
+        throw errorUtils.getInternalError(`bad status code ${response.status} from uplink`);
+      }
 
-    transformStream.abort = (): void => {
-      // FIXME: this is clearly a potential issue
-      // there is no abort method on Stream.Readable
-      // @ts-ignore
-      requestStream.abort();
-      transformStream.emit('end');
-    };
-
-    return transformStream;
+      const streamSearch = new PassThrough({ objectMode: true });
+      const res = await response.text();
+      const streamResponse = Readable.from(res);
+      // objects is one of the properties on the body, it ignores date and total
+      streamResponse.pipe(JSONStream.parse('objects')).pipe(streamSearch, { end: true });
+      return streamSearch;
+    } catch (err: any) {
+      this.logger.error({ errorMessage: err?.message }, 'proxy search error: @{errorMessage}');
+      throw err;
+    }
   }
 
   /**
@@ -705,7 +667,6 @@ class ProxyStorage implements IProxy {
       this.proxy = mainconfig[proxy_key];
     }
     if ('no_proxy' in config) {
-      // $FlowFixMe
       noProxyList = config.no_proxy;
     } else if ('no_proxy' in mainconfig) {
       noProxyList = mainconfig.no_proxy;
@@ -717,7 +678,6 @@ class ProxyStorage implements IProxy {
     }
 
     if (_.isString(noProxyList) && noProxyList.length) {
-      // $FlowFixMe
       noProxyList = noProxyList.split(',');
     }
 

@@ -1,6 +1,6 @@
 {
   "name": "@verdaccio/config",
-  "version": "6.0.0-6-next.4",
+  "version": "6.0.0-6-next.8",
   "description": "logger",
   "main": "./build/index.js",
   "types": "build/index.d.ts",
@@ -39,18 +39,17 @@
     "build": "pnpm run build:js && pnpm run build:types"
   },
   "dependencies": {
-    "@verdaccio/commons-api": "workspace:11.0.0-alpha.3",
-    "@verdaccio/utils": "workspace:6.0.0-alpha.3",
-    "debug": "^4.2.0",
-    "js-yaml": "3.14.0",
-    "lodash": "^4.17.20",
+    "@verdaccio/commons-api": "workspace:11.0.0-6-next.4",
+    "@verdaccio/utils": "workspace:6.0.0-6-next.6",
+    "debug": "4.3.2",
+    "js-yaml": "3.14.1",
+    "lodash": "4.17.21",
     "minimatch": "3.0.4",
-    "mkdirp": "0.5.5",
-    "yup": "^0.29.3"
+    "yup": "0.32.9"
   },
   "devDependencies": {
-    "@types/minimatch": "3.0.3",
-    "@types/yup": "^0.29.9"
+    "@types/minimatch": "3.0.5",
+    "@types/yup": "0.29.13"
   },
   "funding": {
     "type": "opencollective",

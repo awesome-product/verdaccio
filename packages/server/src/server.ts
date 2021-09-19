@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import express, { Application } from 'express';
+import buildDebug from 'debug';
 import compression from 'compression';
 import cors from 'cors';
 import RateLimit from 'express-rate-limit';
 import { HttpError } from 'http-errors';
 
-import { Storage } from '@verdaccio/store';
 import { loadPlugin } from '@verdaccio/loaders';
 import { Auth } from '@verdaccio/auth';
 import apiEndpoint from '@verdaccio/api';
@@ -17,26 +17,23 @@ import webMiddleware from '@verdaccio/web';
 import { ConfigRuntime } from '@verdaccio/types';
 
 import { IAuth, IBasicAuth } from '@verdaccio/auth';
-import { IStorageHandler } from '@verdaccio/store';
-import { setup, logger } from '@verdaccio/logger';
+import { Storage } from '@verdaccio/store';
+import { logger } from '@verdaccio/logger';
 import { log, final, errorReportingMiddleware } from '@verdaccio/middleware';
 import AuditMiddleware from 'verdaccio-audit';
 
-import {
-  Config as IConfig,
-  IPluginStorageFilter,
-  IStorageManager,
-  IPlugin,
-} from '@verdaccio/types';
+import { Config as IConfig, IPluginStorageFilter, IPlugin } from '@verdaccio/types';
 import { $ResponseExtend, $RequestExtend, $NextFunctionVer } from '../types/custom';
 
 import hookDebug from './debug';
 
-interface IPluginMiddleware<T> extends IPlugin<T> {
-  register_middlewares(app: any, auth: IBasicAuth<T>, storage: IStorageManager<T>): void;
+export interface IPluginMiddleware<T> extends IPlugin<T> {
+  register_middlewares(app: any, auth: IBasicAuth<T>, storage: Storage): void;
 }
 
-const defineAPI = function (config: IConfig, storage: IStorageHandler): any {
+const debug = buildDebug('verdaccio:server');
+
+const defineAPI = function (config: IConfig, storage: Storage): any {
   const auth: IAuth = new Auth(config);
   const app: Application = express();
   const limiter = new RateLimit(config.serverSettings.rateLimit);
@@ -143,7 +140,7 @@ const defineAPI = function (config: IConfig, storage: IStorageHandler): any {
 };
 
 export default (async function (configHash: ConfigRuntime): Promise<any> {
-  setup(configHash.logs);
+  debug('start server');
   const config: IConfig = new AppConfig(_.cloneDeep(configHash));
   // register middleware plugins
   const plugin_params = {
@@ -156,11 +153,15 @@ export default (async function (configHash: ConfigRuntime): Promise<any> {
     plugin_params,
     (plugin: IPluginStorageFilter<IConfig>) => plugin.filter_metadata
   );
-  const storage: IStorageHandler = new Storage(config);
-  // waits until init calls have been initialized
+  debug('loaded filter plugin');
+  // @ts-ignore
+  const storage: Storage = new Storage(config);
   try {
+    // waits until init calls have been initialized
+    debug('storage init start');
     await storage.init(config, filters);
-  } catch (err) {
+    debug('storage init end');
+  } catch (err: any) {
     logger.error({ error: err.msg }, 'storage has failed: @{error}');
     throw new Error(err);
   }

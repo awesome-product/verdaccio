@@ -10,7 +10,7 @@ import url from 'url';
 import { findConfigFile, parseConfigFile } from '@verdaccio/config';
 import { API_ERROR } from '@verdaccio/commons-api';
 import { ConfigRuntime, HttpsConfKeyCert, HttpsConfPfx } from '@verdaccio/types';
-import { setup } from '@verdaccio/logger';
+import { setup, logger } from '@verdaccio/logger';
 import server from '@verdaccio/server';
 import { getListListenAddresses } from './cli-utils';
 import { displayExperimentsInfoBox } from './experiments';
@@ -67,7 +67,7 @@ export function createServerFactory(config: ConfigRuntime, addr, app) {
       // TODO: enable http2 as feature
       // if (config.server.http2) <-- check if force http2
       serverFactory = https.createServer(httpsOptions, app);
-    } catch (err) {
+    } catch (err: any) {
       throw new Error(`cannot create https server: ${err.message}`);
     }
   } else {
@@ -132,8 +132,8 @@ export async function initServer(
                 pathname: '/',
               })
         }`;
-        console.log(`http address ${addressServer}`);
-        console.log(`${pkgName} / ${version}`);
+        logger.info(`http address ${addressServer}`);
+        logger.info(`version: ${version}`);
         resolve();
       })
       .on('error', function (err): void {

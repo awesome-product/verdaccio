@@ -1,57 +1,55 @@
 ---
 id: notifications
-title: 'Notifications'
+title: "Notifications"
 ---
 
 Notify was built primarily to use with Slack's Incoming
 webhooks, but will also deliver a simple payload to
-any endpoint. Currently only active for `npm publish`
+any endpoint. This is currently only active for the `npm publish`
 command.
 
-<div id="codefund">''</div>
-
-## Usage
+## Usage {#usage}
 
 An example with a **HipChat**, **Stride** and **Google Hangouts Chat** hook:
 
 > Verdaccio supports any API, feel free to add more examples.
 
-#### Single notification
+#### Single notification {#single-notification}
 
 ```yaml
 notify:
   method: POST
-  headers: [{ 'Content-Type': 'application/json' }]
+  headers: [{'Content-Type': 'application/json'}]
   endpoint: https://usagge.hipchat.com/v2/room/3729485/notification?auth_token=mySecretToken
   content: '{"color":"green","message":"New package published: * {{ name }}*","notify":true,"message_format":"text"}'
 ```
 
-#### Multiple notification
+#### Multiple notification {#multiple-notification}
 
 ```yaml
 notify:
   'example-google-chat':
     method: POST
-    headers: [{ 'Content-Type': 'application/json' }]
+    headers: [{'Content-Type': 'application/json'}]
     endpoint: https://chat.googleapis.com/v1/spaces/AAAAB_TcJYs/messages?key=myKey&token=myToken
     content: '{"text":"New package published: `{{ name }}{{#each versions}} v{{version}}{{/each}}`"}'
   'example-hipchat':
-    method: POST
-    headers: [{ 'Content-Type': 'application/json' }]
-    endpoint: https://usagge.hipchat.com/v2/room/3729485/notification?auth_token=mySecretToken
-    content: '{"color":"green","message":"New package published: * {{ name }}*","notify":true,"message_format":"text"}'
+     method: POST
+     headers: [{'Content-Type': 'application/json'}]
+     endpoint: https://usagge.hipchat.com/v2/room/3729485/notification?auth_token=mySecretToken
+     content: '{"color":"green","message":"New package published: * {{ name }}*","notify":true,"message_format":"text"}'
   'example-stride':
-    method: POST
-    headers: [{ 'Content-Type': 'application/json' }, { 'authorization': 'Bearer secretToken' }]
-    endpoint: https://api.atlassian.com/site/{cloudId}/conversation/{conversationId}/message
-    content: '{"body": {"version": 1,"type": "doc","content": [{"type": "paragraph","content": [{"type": "text","text": "New package published: * {{ name }}* Publisher name: * {{ publisher.name }}"}]}]}}'
+     method: POST
+     headers: [{'Content-Type': 'application/json'}, {'authorization': 'Bearer secretToken'}]
+     endpoint: https://api.atlassian.com/site/{cloudId}/conversation/{conversationId}/message
+     content: '{"body": {"version": 1,"type": "doc","content": [{"type": "paragraph","content": [{"type": "text","text": "New package published: * {{ name }}* Publisher name: * {{ publisher.name }}"}]}]}}'
 ```
 
-## Template
+## Template {#template}
 
 We use [Handlebars](https://handlebarsjs.com/) as main template engine.
 
-### Format Examples
+### Format Examples {#format-examples}
 
 ```
 # iterate all versions
@@ -61,15 +59,15 @@ We use [Handlebars](https://handlebarsjs.com/) as main template engine.
 {{ publisher.name }} has published {{ publishedPackage }}
 ```
 
-### Properties
+### Properties {#properties}
 
 List of properties accesible via template
 
-- Metadata
-- Publisher (who is publishing)
-- Package Published (package@1.0.0)
+* Metadata
+* Publisher (who is publishing)
+* Package Published (package@1.0.0)
 
-### Metadata
+### Metadata {#metadata}
 
 Package metadata that the template has access
 
@@ -123,9 +121,10 @@ Package metadata that the template has access
 }
 ```
 
-### Publisher
 
-You can access to the package publisher information in the `content` of a webhook using the `publisher` object.
+### Publisher {#publisher}
+
+You can get access to the package publisher information in the `content` of a webhook using the `publisher` object.
 
 See below the `publisher` object type:
 
@@ -149,7 +148,7 @@ notify:
 
 **Note:** it's not possible to get the publisher information if the `package.json` file already has the `publisher` property.
 
-### Package Published
+### Package Published {#package-published}
 
 You can access to the package is being published with the keyword `{{publishedPackage}}` as follows.
 
@@ -157,13 +156,13 @@ You can access to the package is being published with the keyword `{{publishedPa
 {{ publisher.name }} has published {{ publishedPackage }}
 ```
 
-## Configuration
+## Configuration {#configuration}
 
-| Property            | Type         | Required | Support | Default | Description                                                                                  |
-| ------------------- | ------------ | -------- | ------- | ------- | -------------------------------------------------------------------------------------------- |
-| method              | string       | No       | all     |         | HTTP verb                                                                                    |
-| packagePattern      | string       | No       | all     |         | Only run this notification if the package name matches the regular expression                |
-| packagePatternFlags | string       | No       | all     |         | Any flags to be used with the regular expression                                             |
-| headers             | array/object | Yes      | all     |         | If this endpoint requires specific headers, set them here as an array of key: value objects. |
-| endpoint            | string       | Yes      | all     |         | set the URL endpoint for this call                                                           |
-| content             | string       | Yes      | all     |         | any [Handlebar](https://handlebarsjs.com/) expressions                                       |
+Property | Type | Required | Support | Default | Description
+--- | --- | --- | --- | --- | ---
+method| string | No | all |  | HTTP verb
+packagePattern| string | No | all |  | Only run this notification if the package name matches the regular expression
+packagePatternFlags| string | No | all |   | Any flags to be used with the regular expression
+headers| array/object | Yes | all |  | If this endpoint requires specific headers, set them here as an array of key: value objects.
+endpoint| string | Yes | all |  | set the URL endpoint for this call
+content| string | Yes | all |  | any [Handlebar](https://handlebarsjs.com/) expressions

@@ -1,5 +1,183 @@
 # @verdaccio/web
 
+## 6.0.0-6-next.17
+
+### Major Changes
+
+- 459b6fa7: refactor: search v1 endpoint and local-database
+
+  - refactor search `api v1` endpoint, improve performance
+  - remove usage of `async` dependency https://github.com/verdaccio/verdaccio/issues/1225
+  - refactor method storage class
+  - create new module `core` to reduce the ammount of modules with utilities
+  - use `undici` instead `node-fetch`
+  - use `fastify` instead `express` for functional test
+
+  ### Breaking changes
+
+  - plugin storage API changes
+  - remove old search endpoint (return 404)
+  - filter local private packages at plugin level
+
+  The storage api changes for methods `get`, `add`, `remove` as promise base. The `search` methods also changes and recieves a `query` object that contains all query params from the client.
+
+  ```ts
+  export interface IPluginStorage<T> extends IPlugin {
+    add(name: string): Promise<void>;
+    remove(name: string): Promise<void>;
+    get(): Promise<any>;
+    init(): Promise<void>;
+    getSecret(): Promise<string>;
+    setSecret(secret: string): Promise<any>;
+    getPackageStorage(packageInfo: string): IPackageStorage;
+    search(query: searchUtils.SearchQuery): Promise<searchUtils.SearchItem[]>;
+    saveToken(token: Token): Promise<any>;
+    deleteToken(user: string, tokenKey: string): Promise<any>;
+    readTokens(filter: TokenFilter): Promise<Token[]>;
+  }
+  ```
+
+### Patch Changes
+
+- Updated dependencies [459b6fa7]
+  - @verdaccio/auth@6.0.0-6-next.11
+  - @verdaccio/config@6.0.0-6-next.8
+  - @verdaccio/commons-api@11.0.0-6-next.4
+  - @verdaccio/store@6.0.0-6-next.12
+  - @verdaccio/utils@6.0.0-6-next.6
+  - @verdaccio/middleware@6.0.0-6-next.11
+  - @verdaccio/loaders@6.0.0-6-next.4
+  - @verdaccio/tarball@11.0.0-6-next.7
+  - @verdaccio/url@11.0.0-6-next.5
+  - @verdaccio/readme@11.0.0-alpha.3
+  - @verdaccio/logger@6.0.0-6-next.4
+
+## 6.0.0-6-next.16
+
+### Patch Changes
+
+- @verdaccio/auth@6.0.0-6-next.10
+- @verdaccio/store@6.0.0-6-next.11
+- @verdaccio/loaders@6.0.0-6-next.4
+- @verdaccio/middleware@6.0.0-6-next.10
+
+## 6.0.0-6-next.15
+
+### Patch Changes
+
+- Updated dependencies [d2c65da9]
+  - @verdaccio/utils@6.0.0-6-next.5
+  - @verdaccio/auth@6.0.0-6-next.9
+  - @verdaccio/config@6.0.0-6-next.7
+  - @verdaccio/tarball@11.0.0-6-next.6
+  - @verdaccio/middleware@6.0.0-6-next.9
+  - @verdaccio/store@6.0.0-6-next.10
+  - @verdaccio/loaders@6.0.0-6-next.4
+
+## 6.0.0-6-next.14
+
+### Patch Changes
+
+- 5ddfa526: Fix the search by exact name of the package
+
+  Full package name queries was not finding anithing. It was happening
+  becouse of stemmer of [lunr.js](https://lunrjs.com/).
+
+  To fix this, the stemmer of [lunr.js](https://lunrjs.com/) was removed from search pipeline.
+
+- Updated dependencies [5ddfa526]
+  - @verdaccio/store@6.0.0-6-next.9
+
+## 6.0.0-6-next.13
+
+### Minor Changes
+
+- 0da7031e: allow disable login on ui and endpoints
+
+  To be able disable the login, set `login: false`, anything else would enable login. This flag will disable access via UI and web endpoints.
+
+  ```yml
+  web:
+    title: verdaccio
+    login: false
+  ```
+
+### Patch Changes
+
+- @verdaccio/auth@6.0.0-6-next.8
+- @verdaccio/readme@11.0.0-alpha.3
+- @verdaccio/tarball@11.0.0-6-next.5
+- @verdaccio/url@11.0.0-6-next.4
+- @verdaccio/loaders@6.0.0-6-next.4
+- @verdaccio/logger@6.0.0-6-next.4
+- @verdaccio/store@6.0.0-6-next.8
+
+## 6.0.0-6-next.12
+
+### Minor Changes
+
+- aecbd226: web: allow ui hide package managers on sidebar
+
+  If there is a package manager of preference over others, you can define the package managers to be displayed on the detail page and sidebar, just define in the `config.yaml` and web section the list of package managers to be displayed.
+
+  ```
+  web:
+    title: Verdaccio
+    sort_packages: asc
+    primary_color: #cccccc
+    pkgManagers:
+      - pnpm
+      - yarn
+      # - npm
+  ```
+
+  To disable all package managers, just define empty:
+
+  ```
+  web:
+    title: Verdaccio
+    sort_packages: asc
+    primary_color: #cccccc
+    pkgManagers:
+  ```
+
+  and the section would be hidden.
+
+### Patch Changes
+
+- @verdaccio/auth@6.0.0-6-next.8
+- @verdaccio/readme@11.0.0-alpha.3
+- @verdaccio/tarball@11.0.0-6-next.5
+- @verdaccio/url@11.0.0-6-next.4
+- @verdaccio/loaders@6.0.0-6-next.4
+- @verdaccio/logger@6.0.0-6-next.4
+- @verdaccio/store@6.0.0-6-next.8
+
+## 6.0.0-6-next.11
+
+### Patch Changes
+
+- Updated dependencies [1b217fd3]
+  - @verdaccio/config@6.0.0-6-next.6
+  - @verdaccio/auth@6.0.0-6-next.8
+  - @verdaccio/loaders@6.0.0-6-next.4
+  - @verdaccio/store@6.0.0-6-next.8
+  - @verdaccio/middleware@6.0.0-6-next.8
+
+## 6.0.0-6-next.10
+
+### Patch Changes
+
+- Updated dependencies [1810ed0d]
+- Updated dependencies [648575aa]
+  - @verdaccio/config@6.0.0-6-next.5
+  - @verdaccio/tarball@11.0.0-6-next.5
+  - @verdaccio/utils@6.0.0-6-next.4
+  - @verdaccio/auth@6.0.0-6-next.7
+  - @verdaccio/loaders@6.0.0-6-next.4
+  - @verdaccio/store@6.0.0-6-next.7
+  - @verdaccio/middleware@6.0.0-6-next.7
+
 ## 6.0.0-6-next.9
 
 ### Patch Changes

@@ -73,7 +73,7 @@ class GoogleCloudStorageHandler implements IPackageStorageManager {
             }
             try {
               onWrite(name, transformPackage(metadata), onEnd);
-            } catch (err) {
+            } catch (err: any) {
               this.logger.error(
                 { name: name, err: err.message },
                 'gcloud: on write update @{name} package has failed err: @{err}'
@@ -90,71 +90,74 @@ class GoogleCloudStorageHandler implements IPackageStorageManager {
           onEnd(getInternalError(err.message));
         }
       )
-      .catch(
-        (err: Error): Callback => {
-          this.logger.error(
-            { name, error: err },
-            'gcloud: trying to update @{name} and was not found on storage err: @{error}'
-          );
-          // @ts-ignore
-          return onEnd(getNotFound());
-        }
-      );
-  }
-
-  public deletePackage(fileName: string, cb: CallbackAction): void {
-    const file = this.helper.buildFilePath(this.name, fileName);
-    this.logger.debug({ name: file.name }, 'gcloud: deleting @{name} from storage');
-    try {
-      // @ts-ignore
-      file
-        .delete()
-        // FIXME: after upgrade this is broken
-        // @ts-ignore
-        .then((_data: [Response]): void => {
-          this.logger.debug(
-            { name: file.name },
-            'gcloud: @{name} was deleted successfully from storage'
-          );
-          cb(null);
-        })
-        .catch((err: Error): void => {
-          this.logger.error(
-            { name: file.name, err: err.message },
-            'gcloud: delete @{name} file has failed err: @{err}'
-          );
-          cb(getInternalError(err.message));
-        });
-    } catch (err) {
-      this.logger.error(
-        { name: file.name, err: err.message },
-        'gcloud: delete @{name} file has failed err: @{err}'
-      );
-      cb(getInternalError('something went wrong'));
-    }
-  }
-
-  public removePackage(callback: CallbackAction): void {
-    // remove all files from storage
-    const file = this.helper.getBucket().file(`${this.name}`);
-    this.logger.debug({ name: file.name }, 'gcloud: removing the package @{name} from storage');
-    // @ts-ignore
-    file.delete().then(
-      (): void => {
-        this.logger.debug(
-          { name: file.name },
-          'gcloud: package @{name} was deleted successfully from storage'
+      .catch((err: Error): Callback => {
+        this.logger.error(
+          { name, error: err },
+          'gcloud: trying to update @{name} and was not found on storage err: @{error}'
         );
-        callback(null);
-      },
-      (err: Error): void => {
+        // @ts-ignore
+        return onEnd(getNotFound());
+      });
+  }
+
+  public deletePackage(fileName: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const file = this.helper.buildFilePath(this.name, fileName);
+      this.logger.debug({ name: file.name }, 'gcloud: deleting @{name} from storage');
+      try {
+        file
+          // @ts-ignore
+          .delete()
+          // FIXME: after upgrade this is broken
+          // @ts-ignore
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          .then((_data: [Response]): void => {
+            this.logger.debug(
+              { name: file.name },
+              'gcloud: @{name} was deleted successfully from storage'
+            );
+            resolve();
+          })
+          .catch((err: Error): void => {
+            this.logger.error(
+              { name: file.name, err: err.message },
+              'gcloud: delete @{name} file has failed err: @{err}'
+            );
+            reject(getInternalError(err.message));
+          });
+      } catch (err: any) {
         this.logger.error(
           { name: file.name, err: err.message },
-          'gcloud: delete @{name} package has failed err: @{err}'
+          'gcloud: delete @{name} file has failed err: @{err}'
         );
-        callback(getInternalError(err.message));
+        reject(getInternalError('something went wrong'));
       }
-    );
+    });
+  }
+
+  public removePackage(): Promise<void> {
+    // remove all files from storage
+    return new Promise((resolve, reject) => {
+      const file = this.helper.getBucket().file(`${this.name}`);
+      this.logger.debug({ name: file.name }, 'gcloud: removing the package @{name} from storage');
+      // @ts-ignore
+      file.delete().then(
+        (): void => {
+          this.logger.debug(
+            { name: file.name },
+            'gcloud: package @{name} was deleted successfully from storage'
+          );
+          resolve();
+        },
+        (err: Error): void => {
+          this.logger.error(
+            { name: file.name, err: err.message },
+            'gcloud: delete @{name} package has failed err: @{err}'
+          );
+          reject(getInternalError(err.message));
+        }
+      );
+    });
   }
 
   public createPackage(name: string, metadata: Package, cb: CallbackAction): void {
@@ -197,28 +200,26 @@ class GoogleCloudStorageHandler implements IPackageStorageManager {
 
   /* eslint-disable no-async-promise-executor */
   private _savePackage(name: string, metadata: Package): Promise<null | VerdaccioError> {
-    return new Promise(
-      async (resolve, reject): Promise<void> => {
-        const file = this.helper.buildFilePath(name, pkgFileName);
-        try {
-          await file.save(this._convertToString(metadata), {
-            validation: this.config.validation || defaultValidation,
-            /**
-             *  When resumable is `undefined` - it will default to `true`as
-             *  per GC Storage documentation:
-             * `Resumable uploads are automatically enabled and must be shut
-             *  off explicitly by setting options.resumable to false`
-             *  @see
-             *  https://cloud.google.com/nodejs/docs/reference/storage/2.5.x/File#createWriteStream
-             */
-            resumable: this.config.resumable,
-          });
-          resolve(null);
-        } catch (err) {
-          reject(getInternalError(err.message));
-        }
+    return new Promise(async (resolve, reject): Promise<void> => {
+      const file = this.helper.buildFilePath(name, pkgFileName);
+      try {
+        await file.save(this._convertToString(metadata), {
+          validation: this.config.validation || defaultValidation,
+          /**
+           *  When resumable is `undefined` - it will default to `true`as
+           *  per GC Storage documentation:
+           * `Resumable uploads are automatically enabled and must be shut
+           *  off explicitly by setting options.resumable to false`
+           *  @see
+           *  https://cloud.google.com/nodejs/docs/reference/storage/2.5.x/File#createWriteStream
+           */
+          resumable: this.config.resumable,
+        });
+        resolve(null);
+      } catch (err: any) {
+        reject(getInternalError(err.message));
       }
-    );
+    });
   }
   /* eslint-enable no-async-promise-executor */
 
@@ -244,48 +245,44 @@ class GoogleCloudStorageHandler implements IPackageStorageManager {
 
   /* eslint-disable no-async-promise-executor */
   private _fileExist(name: string, fileName: string): Promise<boolean> {
-    return new Promise(
-      async (resolve, reject): Promise<void> => {
-        const file: File = this.helper.buildFilePath(name, fileName);
-        try {
-          // @ts-ignore
-          const data = await file.exists();
-          const exist = data[0];
+    return new Promise(async (resolve, reject): Promise<void> => {
+      const file: File = this.helper.buildFilePath(name, fileName);
+      try {
+        // @ts-ignore
+        const data = await file.exists();
+        const exist = data[0];
 
-          resolve(exist);
-          this.logger.debug(
-            { name: name, exist },
-            'gcloud: check whether @{name} exist successfully: @{exist}'
-          );
-        } catch (err) {
-          this.logger.error(
-            { name: file.name, err: err.message },
-            'gcloud: check exist package @{name} has failed, cause: @{err}'
-          );
+        resolve(exist);
+        this.logger.debug(
+          { name: name, exist },
+          'gcloud: check whether @{name} exist successfully: @{exist}'
+        );
+      } catch (err: any) {
+        this.logger.error(
+          { name: file.name, err: err.message },
+          'gcloud: check exist package @{name} has failed, cause: @{err}'
+        );
 
-          reject(getInternalError(err.message));
-        }
+        reject(getInternalError(err.message));
       }
-    );
+    });
   }
 
   private async _readPackage(name: string): Promise<Package> {
-    return new Promise(
-      async (resolve, reject): Promise<void> => {
-        const file = this.helper.buildFilePath(name, pkgFileName);
+    return new Promise(async (resolve, reject): Promise<void> => {
+      const file = this.helper.buildFilePath(name, pkgFileName);
 
-        try {
-          const content: DownloadResponse = await file.download();
-          this.logger.debug({ name: this.name }, 'gcloud: @{name} was found on storage');
-          const response: Package = JSON.parse(content[0].toString('utf8'));
+      try {
+        const content: DownloadResponse = await file.download();
+        this.logger.debug({ name: this.name }, 'gcloud: @{name} was found on storage');
+        const response: Package = JSON.parse(content[0].toString('utf8'));
 
-          resolve(response);
-        } catch (err) {
-          this.logger.debug({ name: this.name }, 'gcloud: @{name} package not found on storage');
-          reject(getNotFound());
-        }
+        resolve(response);
+      } catch (err: any) {
+        this.logger.debug({ name: this.name }, 'gcloud: @{name} package not found on storage');
+        reject(getNotFound());
       }
-    );
+    });
   }
   /* eslint-disable no-async-promise-executor */
 
@@ -362,7 +359,7 @@ class GoogleCloudStorageHandler implements IPackageStorageManager {
           uploadStream.emit('error', getInternalError(err.message));
         }
       );
-    } catch (err) {
+    } catch (err: any) {
       uploadStream.emit('error', err);
     }
     return uploadStream;

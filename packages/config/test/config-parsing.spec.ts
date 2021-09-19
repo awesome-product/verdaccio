@@ -1,14 +1,7 @@
-import path from 'path';
 import { parseConfigFile } from '../src';
+import { parseConfigurationFile } from './utils';
 
 describe('Package access utilities', () => {
-  const parseConfigurationFile = (conf) => {
-    const { name, ext } = path.parse(conf);
-    const format = ext.startsWith('.') ? ext.substring(1) : 'yaml';
-
-    return path.join(__dirname, `./partials/config/${format}/${name}.${format}`);
-  };
-
   describe('JSON format', () => {
     test('parse default.json', () => {
       const config = parseConfigFile(parseConfigurationFile('default.json'));
@@ -19,13 +12,13 @@ describe('Package access utilities', () => {
     test('parse invalid.json', () => {
       expect(function () {
         parseConfigFile(parseConfigurationFile('invalid.json'));
-      }).toThrow(/Error/);
+      }).toThrow(/CONFIG: it does not look like a valid config file/);
     });
 
     test('parse not-exists.json', () => {
       expect(function () {
         parseConfigFile(parseConfigurationFile('not-exists.json'));
-      }).toThrow(/Error/);
+      }).toThrow(/Cannot find module/);
     });
   });
 
@@ -39,13 +32,13 @@ describe('Package access utilities', () => {
     test('parse invalid.js', () => {
       expect(function () {
         parseConfigFile(parseConfigurationFile('invalid.js'));
-      }).toThrow(/Error/);
+      }).toThrow(/CONFIG: it does not look like a valid config file/);
     });
 
     test('parse not-exists.js', () => {
       expect(function () {
         parseConfigFile(parseConfigurationFile('not-exists.js'));
-      }).toThrow(/Error/);
+      }).toThrow(/Cannot find module/);
     });
   });
 });

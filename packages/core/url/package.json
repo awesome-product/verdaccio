@@ -1,6 +1,6 @@
 {
   "name": "@verdaccio/url",
-  "version": "11.0.0-6-next.4",
+  "version": "11.0.0-6-next.5",
   "description": "url utilities resolver",
   "keywords": [
     "private",
@@ -34,14 +34,14 @@
     "access": "public"
   },
   "dependencies": {
-    "debug": "^4.3.1",
-    "lodash": "^4.17.21",
-    "validator": "^13.5.2",
-    "@verdaccio/commons-api": "workspace:11.0.0-alpha.3"
+    "@verdaccio/commons-api": "workspace:11.0.0-6-next.4",
+    "debug": "4.3.2",
+    "lodash": "4.17.21",
+    "validator": "13.6.0"
   },
   "devDependencies": {
-    "node-mocks-http": "^1.10.1",
-    "@verdaccio/types": "workspace:11.0.0-6-next.4"
+    "@verdaccio/types": "workspace:11.0.0-6-next.8",
+    "node-mocks-http": "1.10.1"
   },
   "scripts": {
     "clean": "rimraf ./build",

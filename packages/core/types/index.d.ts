@@ -1,7 +1,6 @@
 /// <reference types="node" />
 
 import { PassThrough } from 'stream';
-
 declare module '@verdaccio/types' {
   type StringValue = string | void | null;
 
@@ -10,10 +9,56 @@ declare module '@verdaccio/types' {
   // FIXME: err should be something flexible enough for any implementation
   type CallbackAction = (err: any | null) => void;
   interface Author {
+    username?: string;
     name: string;
     email?: string;
     url?: string;
   }
+
+  type PackageManagers = 'pnpm' | 'yarn' | 'npm';
+
+  // FUTURE: WebConf and TemplateUIOptions should be merged .
+  type CommonWebConf = {
+    title?: string;
+    logo?: string;
+    favicon?: string;
+    gravatar?: boolean;
+    sort_packages?: string;
+    darkMode?: boolean;
+    url_prefix?: string;
+    language?: string;
+    login?: boolean;
+    scope?: string;
+    pkgManagers?: PackageManagers[];
+  };
+
+  /**
+   * Options are passed to the index.html
+   */
+  export type TemplateUIOptions = {
+    uri?: string;
+    darkMode?: boolean;
+    protocol?: string;
+    host?: string;
+    base: string;
+    primaryColor?: string;
+    version?: string;
+    logoURI?: string;
+  } & CommonWebConf;
+
+  /**
+   * Options on config.yaml for web
+   */
+  type WebConf = {
+    // FIXME: rename to primaryColor and move it to CommonWebConf
+    primary_color?: string;
+    enable?: boolean;
+    scriptsHead?: string[];
+    scriptsBodyAfter?: string[];
+    metaScripts?: string[];
+    bodyBefore?: string[];
+    bodyAfter?: string[];
+  } & CommonWebConf;
 
   interface Dist {
     integrity?: string;
@@ -137,7 +182,7 @@ declare module '@verdaccio/types' {
     name: string;
     versions: Versions;
     'dist-tags': GenericBody;
-    time?: GenericBody;
+    time: GenericBody;
     readme?: string;
     users?: PackageUsers;
     _distfiles: DistFiles;
@@ -276,23 +321,6 @@ declare module '@verdaccio/types' {
   interface ListenAddress {
     [key: string]: string;
   }
-
-  interface WebConf {
-    enable?: boolean;
-    title?: string;
-    logo?: string;
-    favicon?: string;
-    gravatar?: boolean;
-    sort_packages?: string;
-    scriptsHead?: string[];
-    scriptsBodyAfter?: string[];
-    metaScripts?: string[];
-    bodyBefore?: string[];
-    bodyAfter?: string[];
-    darkMode?: boolean;
-    primary_color?: string;
-  }
-
   interface HttpsConfKeyCert {
     key: string;
     cert: string;
@@ -371,7 +399,9 @@ declare module '@verdaccio/types' {
     storage?: string | void;
     packages: PackageList;
     uplinks: UpLinksConfList;
+    // @deprecated in favor of log
     logs?: LoggerConf[];
+    log?: LoggerConf[];
     web?: WebConf;
     auth?: AuthConf;
     security: Security;
@@ -418,39 +448,18 @@ declare module '@verdaccio/types' {
   }
 
   /**
-   * This method expect return a Package object
-   * eg:
-   * {
-   *   name: string;
-   *   time: number;
-   *   ... and other props
-   * }
-   *
-   * The `cb` callback object will be executed if:
-   *  - it might return object (truly)
-   *  - it might reutrn null
+   * @deprecated use @verdaccio/core pluginUtils instead
    */
-  type onSearchPackage = (item: Package, cb: CallbackAction) => void;
-  // FIXME: error should be export type `VerdaccioError = HttpError & { code: number };`
-  // but this type is on @verdaccio/commons-api and cannot be used here yet
-  type onEndSearchPackage = (error?: any) => void;
-  type onValidatePackage = (name: string) => boolean;
-
   interface ILocalData<T> extends IPlugin<T>, ITokenActions {
     logger: Logger;
     config: T & Config;
-    add(name: string, callback: Callback): void;
-    remove(name: string, callback: Callback): void;
-    get(callback: Callback): void;
+    add(name: string): Promise<void>;
+    remove(name: string): Promise<void>;
+    get(): Promise<any>;
     init(): Promise<void>;
     getSecret(): Promise<string>;
     setSecret(secret: string): Promise<any>;
     getPackageStorage(packageInfo: string): IPackageStorage;
-    search(
-      onPackage: onSearchPackage,
-      onEnd: onEndSearchPackage,
-      validateName: onValidatePackage
-    ): void;
   }
 
   type StorageUpdateCallback = (data: Package, cb: CallbackAction) => void;
@@ -465,14 +474,14 @@ declare module '@verdaccio/types' {
     readTarball(pkgName: string): IReadTarball;
     readPackage(fileName: string, callback: ReadPackageCallback): void;
     createPackage(pkgName: string, value: Package, cb: CallbackAction): void;
-    deletePackage(fileName: string, callback: CallbackAction): void;
-    removePackage(callback: CallbackAction): void;
+    deletePackage(fileName: string): Promise<void>;
+    removePackage(): Promise<void>;
     updatePackage(
       pkgFileName: string,
       updateHandler: StorageUpdateCallback,
       onWrite: StorageWriteCallback,
       transformPackage: PackageTransformer,
-      onEnd: CallbackAction
+      onEnd: Callback
     ): void;
     savePackage(fileName: string, json: Package, callback: CallbackAction): void;
   }
@@ -494,16 +503,6 @@ declare module '@verdaccio/types' {
     mergeTags(name: string, tags: MergeTags, callback: Callback): void;
     removePackage(name: string, callback: Callback): void;
     changePackage(name: string, metadata: Package, revision: string, callback: Callback): void;
-  }
-
-  interface IStorageManager<T> extends StoragePackageActions {
-    config: T & Config;
-    logger: Logger;
-    init(config: T & Config, filters: any): Promise<any>;
-    addPackage(name: string, metadata: any, callback: Callback): Promise<any>;
-    getPackage(options: any): void;
-    search(startkey: string, options: any): IReadTarball;
-    getLocalDatabase(callback: Callback): void;
   }
 
   // @deprecated use IBasicAuth from @verdaccio/auth
@@ -571,7 +570,7 @@ declare module '@verdaccio/types' {
 
   // @deprecated use @verdaccio/server
   interface IPluginMiddleware<T> extends IPlugin<T> {
-    register_middlewares(app: any, auth: IBasicAuth<T>, storage: IStorageManager<T>): void;
+    register_middlewares(app: any, auth: IBasicAuth<T>, storage: any): void;
   }
 
   interface IPluginStorageFilter<T> extends IPlugin<T> {

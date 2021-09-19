@@ -65,9 +65,6 @@ export function setSecurityWebHeaders(
   next();
 }
 
-// flow: express does not match properly
-// flow info
-// https://github.com/flowtype/flow-typed/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+express
 export function validateName(
   req: $RequestExtend,
   res: $ResponseExtend,
@@ -85,9 +82,6 @@ export function validateName(
   }
 }
 
-// flow: express does not match properly
-// flow info
-// https://github.com/flowtype/flow-typed/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+express
 export function validatePackage(
   req: $RequestExtend,
   res: $ResponseExtend,
@@ -207,6 +201,8 @@ export function final(
   body: FinalBody,
   req: $RequestExtend,
   res: $ResponseExtend,
+  // if we remove `next` breaks test
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: $NextFunctionVer
 ): void {
   if (res.statusCode === HTTP_STATUS.UNAUTHORIZED && !res.getHeader(HEADERS.WWW_AUTH)) {
@@ -238,7 +234,7 @@ export function final(
     } else {
       // send(null), send(204), etc.
     }
-  } catch (err) {
+  } catch (err: any) {
     // if verdaccio sends headers first, and then calls res.send()
     // as an error handler, we can't report error properly,
     // and should just close socket

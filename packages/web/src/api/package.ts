@@ -6,7 +6,7 @@ import { $RequestExtend, $ResponseExtend, $NextFunctionVer } from '@verdaccio/mi
 import { logger } from '@verdaccio/logger';
 import { Router } from 'express';
 import { IAuth } from '@verdaccio/auth';
-import { IStorageHandler } from '@verdaccio/store';
+import { Storage } from '@verdaccio/store';
 import { Config, Package, RemoteUser } from '@verdaccio/types';
 
 import { getLocalRegistryTarballUri } from '@verdaccio/tarball';
@@ -23,23 +23,27 @@ export type PackageExt = Package & { author: AuthorAvatar; dist?: { tarball: str
 
 const debug = buildDebug('verdaccio:web:api:package');
 
-function addPackageWebApi(
-  route: Router,
-  storage: IStorageHandler,
-  auth: IAuth,
-  config: Config
-): void {
+function addPackageWebApi(route: Router, storage: Storage, auth: IAuth, config: Config): void {
+  const isLoginEnabled = config?.web?.login === true ?? true;
+  const anonymousRemoteUser: RemoteUser = {
+    name: undefined,
+    real_groups: [],
+    groups: [],
+  };
+
   debug('initialized package web api');
   const checkAllow = (name: string, remoteUser: RemoteUser): Promise<boolean> =>
     new Promise((resolve, reject): void => {
+      debug('is login disabled %o', isLoginEnabled);
+      const remoteUserAccess = !isLoginEnabled ? anonymousRemoteUser : remoteUser;
       try {
-        auth.allow_access({ packageName: name }, remoteUser, (err, allowed): void => {
+        auth.allow_access({ packageName: name }, remoteUserAccess, (err, allowed): void => {
           if (err) {
             resolve(false);
           }
           resolve(allowed);
         });
-      } catch (err) {
+      } catch (err: any) {
         reject(err);
       }
     });
@@ -80,7 +84,7 @@ function addPackageWebApi(
                 }
                 permissions.push(pkgCopy);
               }
-            } catch (err) {
+            } catch (err: any) {
               debug('process packages error %o', err);
               logger.logger.error(
                 { name: pkg.name, error: err },
@@ -98,7 +102,7 @@ function addPackageWebApi(
 
         try {
           next(sortByName(await processPackages(packages), order));
-        } catch (error) {
+        } catch (error: any) {
           next(error);
         }
       });

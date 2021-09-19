@@ -5,15 +5,16 @@ import { SearchInstance } from '@verdaccio/store';
 import { match, validateName, validatePackage } from '@verdaccio/middleware';
 import { Config } from '@verdaccio/types';
 import { IAuth } from '@verdaccio/auth';
-import { IStorageHandler } from '@verdaccio/store';
+import { Storage } from '@verdaccio/store';
 import addSearchWebApi from '../api/search';
 import addPackageWebApi from '../api/package';
 import addUserAuthApi from '../api/user';
 import addReadmeWebApi from '../api/readme';
 import addSidebarWebApi from '../api/sidebar';
+import { hasLogin } from '../utils/web-utils';
 import { setSecurityWebHeaders } from './security';
 
-export function webAPI(config: Config, auth: IAuth, storage: IStorageHandler): Router {
+export function webAPI(config: Config, auth: IAuth, storage: Storage): Router {
   // eslint-disable-next-line new-cap
   const route = Router();
   SearchInstance.configureStorage(storage);
@@ -33,7 +34,9 @@ export function webAPI(config: Config, auth: IAuth, storage: IStorageHandler): R
   addReadmeWebApi(route, storage, auth);
   addSidebarWebApi(route, config, storage, auth);
   addSearchWebApi(route, storage, auth);
-  addUserAuthApi(route, auth, config);
+  if (hasLogin(config)) {
+    addUserAuthApi(route, auth, config);
+  }
   // What are you looking for? logout? client side will remove token when user click logout,
   // or it will auto expire after 24 hours.
   // This token is different with the token send to npm client.

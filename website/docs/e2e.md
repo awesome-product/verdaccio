@@ -1,31 +1,44 @@
 ---
 id: e2e
-title: 'End to End testing'
+title: "End to End testing"
 ---
+
+## Testing the integrity of React components by publishing in a private registry
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/bRKZbrlQqLY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+- [Slides](https://docs.google.com/presentation/d/1a2xkqj1KlUayR1Bva1bVYvavwOPVuLplxFtup9MI_U4/edit?usp=sharing)
+- [Demo](https://github.com/juanpicado/verdaccio-end-to-end-tests)
+
+## E2E and Verdaccio
 
 Some projects organize packages in multi-packages repositories or [monorepos](https://github.com/babel/babel/blob/master/doc/design/monorepo.md). E2E testing is a topic that usually is only relevant for User Interfaces, but from a Node.js perspective, **publishing packages also need to be tested**.
 
-<div id="codefund">''</div>
+```mdx-code-block
+import { Tweet } from 'react-twitter-widgets'
 
-<blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">Solution: a local npm registry. <a href="https://t.co/kvcyVANVSK">https://t.co/kvcyVANVSK</a></p>&mdash; Dan Abramov (@dan_abramov) <a href="https://twitter.com/dan_abramov/status/951427674844680192?ref_src=twsrc%5Etfw">11 de enero de 2018</a></blockquote>
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<Tweet tweetId="951427674844680192" options={{
+  dnt: true,
+  align: 'center'
+}} />
+```
 
 Such approach has been really hard to achieve considering:
 
-- Populate canary packages on public services seems not to be a good idea
-- Some self-hosted OSS registries are too heavy
-- Offline environments (private networks)
+* Populate canary packages on public services seems not to be a good idea
+* Some self-hosted OSS registries are too heavy
+* Offline environments (private networks)
 
 **Verdaccio** is a lightweight registry with zero-configuration that **fits perfectly in any E2E + CI workflow**.
 
-## Implementation
+## Implementation {#implementation}
 
 There is no a silver bullet yet, each implementation seems to be specific for each project, you can check some of them in
 the following thread [clicking here](https://stackoverflow.com/a/50222427/308341).
 
-### Example using Bash
+### Example using Bash {#example-using-bash}
 
-This is the most simple example using Verdaccio in a bash script (extracted from _create-react-app_).
+This is the most simple example using Verdaccio in a bash script (extracted from *create-react-app*).
 
 ```bash
 #!/bin/sh
@@ -47,18 +60,25 @@ sh -c "npm-auth-to-token -u test -p test -e test@test.com -r $local_registry"
 sh -c "npm --registry $local_registry publish"
 ```
 
-## Who is using it for E2E?
 
-- [create-react-app](https://github.com/facebook/create-react-app/blob/master/CONTRIBUTING.md#contributing-to-e2e-end-to-end-tests) _(+73.5k ⭐️)_
-- [Storybook](https://github.com/storybooks/storybook) _(+44k ⭐️)_
-- [Gatsby](https://github.com/gatsbyjs/gatsby) \*(+40k ⭐️)
-- [Babel.js](https://github.com/babel/babel) _(+35k ⭐️)_
-- [Uppy](https://github.com/transloadit/uppy) _(+21k ⭐️)_
-- [Aurelia Framework](https://github.com/aurelia) _(+12k ⭐️)_
-- [ethereum/web3.js](https://github.com/ethereum/web3.js) _(+8k ⭐️)_
-- [bit](https://github.com/teambit/bit) _(+6k ⭐️)_
-- [pnpm](https://github.com/pnpm/pnpm) _(+6k ⭐️)_
-- [Mozilla Neutrino](https://github.com/neutrinojs/neutrino) _(+3k ⭐️)_
-- [Embark](https://embark.status.im/) _(+3k ⭐️)_
-- [Hyperledger Composer](https://github.com/hyperledger/composer) _(+1.6k ⭐️)_
-- [Wix Yoshi](https://github.com/wix/yoshi)
+## Who is using it for E2E? {#who-is-using-it-for-e2e}
+
+* [create-react-app](https://github.com/facebook/create-react-app/blob/master/CONTRIBUTING.md#contributing-to-e2e-end-to-end-tests) *(+73.5k ⭐️)*
+* [Storybook](https://github.com/storybooks/storybook) *(+44k ⭐️)*
+* [Gatsby](https://github.com/gatsbyjs/gatsby) *(+40k ⭐️)
+* [Babel.js](https://github.com/babel/babel) *(+35k ⭐️)*
+* [Uppy](https://github.com/transloadit/uppy) *(+21k ⭐️)*
+* [Aurelia Framework](https://github.com/aurelia) *(+12k ⭐️)*
+* [ethereum/web3.js](https://github.com/ethereum/web3.js) *(+8k ⭐️)*
+* [bit](https://github.com/teambit/bit) *(+6k ⭐️)*
+* [pnpm](https://github.com/pnpm/pnpm) *(+6k ⭐️)*
+* [Mozilla Neutrino](https://github.com/neutrinojs/neutrino) *(+3k ⭐️)*
+* [Embark](https://embark.status.im/) *(+3k ⭐️)*
+* [Hyperledger Composer](https://github.com/hyperledger/composer) *(+1.6k ⭐️)*
+* [Wix Yoshi](https://github.com/wix/yoshi)
+
+
+
+
+
+

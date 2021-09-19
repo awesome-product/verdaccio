@@ -1,5 +1,36 @@
 # Change Log
 
+## 11.0.0-6-next.7
+
+### Patch Changes
+
+- Updated dependencies [459b6fa7]
+  - @verdaccio/commons-api@11.0.0-6-next.4
+  - @verdaccio/utils@6.0.0-6-next.6
+  - @verdaccio/url@11.0.0-6-next.5
+
+## 11.0.0-6-next.6
+
+### Patch Changes
+
+- Updated dependencies [d2c65da9]
+  - @verdaccio/utils@6.0.0-6-next.5
+
+## 11.0.0-6-next.5
+
+### Patch Changes
+
+- 648575aa: Bug Fixes
+
+  - fix escaped slash in namespaced packages
+
+  #### Related tickets
+
+  https://github.com/verdaccio/verdaccio/pull/2193
+
+- Updated dependencies [648575aa]
+  - @verdaccio/utils@6.0.0-6-next.4
+
 ## 11.0.0-6-next.4
 
 ### Patch Changes

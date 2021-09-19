@@ -1,5 +1,5 @@
 import path from 'path';
-import * as readFile from '../src/read-file';
+import * as readFile from '../src/fs';
 
 import { findPackages, _dbGenPath } from '../src/utils';
 import { loadPrivatePackages } from '../src/pkg-utils';
@@ -54,7 +54,7 @@ describe('Utitlies', () => {
           './no_such_folder_fake',
           jest.fn(() => true)
         );
-      } catch (e) {
+      } catch (e: any) {
         expect(e.code).toEqual(noSuchFile);
       }
     });

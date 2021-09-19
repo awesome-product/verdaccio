@@ -1,5 +1,145 @@
 # @verdaccio/cli
 
+## 6.0.0-6-next.21
+
+### Major Changes
+
+- 459b6fa7: refactor: search v1 endpoint and local-database
+
+  - refactor search `api v1` endpoint, improve performance
+  - remove usage of `async` dependency https://github.com/verdaccio/verdaccio/issues/1225
+  - refactor method storage class
+  - create new module `core` to reduce the ammount of modules with utilities
+  - use `undici` instead `node-fetch`
+  - use `fastify` instead `express` for functional test
+
+  ### Breaking changes
+
+  - plugin storage API changes
+  - remove old search endpoint (return 404)
+  - filter local private packages at plugin level
+
+  The storage api changes for methods `get`, `add`, `remove` as promise base. The `search` methods also changes and recieves a `query` object that contains all query params from the client.
+
+  ```ts
+  export interface IPluginStorage<T> extends IPlugin {
+    add(name: string): Promise<void>;
+    remove(name: string): Promise<void>;
+    get(): Promise<any>;
+    init(): Promise<void>;
+    getSecret(): Promise<string>;
+    setSecret(secret: string): Promise<any>;
+    getPackageStorage(packageInfo: string): IPackageStorage;
+    search(query: searchUtils.SearchQuery): Promise<searchUtils.SearchItem[]>;
+    saveToken(token: Token): Promise<any>;
+    deleteToken(user: string, tokenKey: string): Promise<any>;
+    readTokens(filter: TokenFilter): Promise<Token[]>;
+  }
+  ```
+
+### Patch Changes
+
+- Updated dependencies [459b6fa7]
+  - @verdaccio/config@6.0.0-6-next.8
+  - @verdaccio/fastify-migration@6.0.0-6-next.12
+  - @verdaccio/node-api@6.0.0-6-next.20
+  - @verdaccio/logger@6.0.0-6-next.4
+
+## 6.0.0-6-next.20
+
+### Patch Changes
+
+- Updated dependencies [df0da3d6]
+  - @verdaccio/fastify-migration@6.0.0-6-next.11
+  - @verdaccio/node-api@6.0.0-6-next.19
+
+## 6.0.0-6-next.19
+
+### Major Changes
+
+- 2e3b9552: feat: node 14 as minimum for running cli
+
+## 6.0.0-6-next.18
+
+### Patch Changes
+
+- @verdaccio/node-api@6.0.0-6-next.18
+
+## 6.0.0-6-next.17
+
+### Minor Changes
+
+- 55ee3fdd: [Fastify] Add ping endpoint
+
+### Patch Changes
+
+- Updated dependencies [55ee3fdd]
+  - @verdaccio/fastify-migration@6.0.0-6-next.10
+  - @verdaccio/config@6.0.0-6-next.7
+  - @verdaccio/node-api@6.0.0-6-next.17
+
+## 6.0.0-6-next.16
+
+### Patch Changes
+
+- @verdaccio/node-api@6.0.0-6-next.16
+
+## 6.0.0-6-next.15
+
+### Patch Changes
+
+- @verdaccio/fastify-migration@6.0.0-6-next.9
+- @verdaccio/logger@6.0.0-6-next.4
+- @verdaccio/node-api@6.0.0-6-next.15
+
+## 6.0.0-6-next.14
+
+### Patch Changes
+
+- @verdaccio/fastify-migration@6.0.0-6-next.9
+- @verdaccio/logger@6.0.0-6-next.4
+- @verdaccio/node-api@6.0.0-6-next.14
+
+## 6.0.0-6-next.13
+
+### Patch Changes
+
+- Updated dependencies [1b217fd3]
+  - @verdaccio/config@6.0.0-6-next.6
+  - @verdaccio/node-api@6.0.0-6-next.13
+
+## 6.0.0-6-next.12
+
+### Patch Changes
+
+- 19d272d1: fix: restore logger on init
+
+  Enable logger after parse configuration and log the very first step on startup phase.
+
+  ```bash
+   warn --- experiments are enabled, it is recommended do not use experiments in production comment out this section to disable it
+   info --- support for experiment [token]  is disabled
+   info --- support for experiment [search]  is disabled
+  (node:50831) Warning: config.logs is deprecated, rename configuration to "config.log"
+  (Use `node --trace-warnings ...` to show where the warning was created)
+   info --- http address http://localhost:4873/
+   info --- version: 6.0.0-6-next.11
+   info --- server started
+  ```
+
+- Updated dependencies [19d272d1]
+  - @verdaccio/node-api@6.0.0-6-next.12
+  - @verdaccio/fastify-migration@6.0.0-6-next.9
+  - @verdaccio/logger@6.0.0-6-next.4
+
+## 6.0.0-6-next.11
+
+### Patch Changes
+
+- Updated dependencies [1810ed0d]
+  - @verdaccio/config@6.0.0-6-next.5
+  - @verdaccio/node-api@6.0.0-6-next.11
+
 ## 6.0.0-6-next.10
 
 ### Major Changes

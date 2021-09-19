@@ -1,34 +1,31 @@
 /* eslint-disable jest/no-mocks-import */
 import fs from 'fs';
 import path from 'path';
-
-import { assign } from 'lodash';
-import { ILocalData, PluginOptions, Token } from '@verdaccio/types';
+import { dirSync } from 'tmp-promise';
+import { Token } from '@verdaccio/types';
 
 import LocalDatabase from '../src/local-database';
-import { ILocalFSPackageManager } from '../src/local-fs';
-import * as pkgUtils from '../src/pkg-utils';
 
 // FIXME: remove this mocks imports
-import Config from './__mocks__/Config';
 import logger from './__mocks__/Logger';
 
-const optionsPlugin: PluginOptions<{}> = {
-  logger,
-  config: new Config(),
-};
-
-let locaDatabase: ILocalData<{}>;
-let loadPrivatePackages;
-
 describe('Local Database', () => {
-  beforeEach(() => {
+  let tmpFolder;
+  let locaDatabase;
+  beforeEach(async () => {
+    tmpFolder = dirSync({ unsafeCleanup: true });
+    const tempFolder = path.join(tmpFolder.name, 'verdaccio-test.yaml');
     const writeMock = jest.spyOn(fs, 'writeFileSync').mockImplementation();
-    loadPrivatePackages = jest
-      .spyOn(pkgUtils, 'loadPrivatePackages')
-      .mockReturnValue({ list: [], secret: '' });
-    locaDatabase = new LocalDatabase(optionsPlugin.config, optionsPlugin.logger);
-    (locaDatabase as LocalDatabase).clean();
+    locaDatabase = new LocalDatabase( // @ts-expect-error
+      {
+        storage: 'storage',
+        config_path: tempFolder,
+        checkSecretKey: () => 'fooX',
+      },
+      logger
+    );
+    await (locaDatabase as any).init();
+    (locaDatabase as any).clean();
     writeMock.mockClear();
   });
 
@@ -39,10 +36,10 @@ describe('Local Database', () => {
   describe('token', () => {
     let token: Token = {
       user: 'someUser',
-      viewToken: 'viewToken',
+      token: 'foo..foo',
       key: 'someHash',
       readonly: true,
-      createdTimestamp: new Date().getTime(),
+      created: 1234,
     };
 
     test('should save and get token', async () => {
